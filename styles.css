@@ -1,14 +1,13 @@
 :root {
   --bg: #f5efe4;
-  --bg-accent: #f7d6bf;
-  --panel: rgba(255, 250, 245, 0.75);
-  --panel-strong: #fff8f1;
+  --panel: rgba(255, 250, 245, 0.76);
+  --panel-strong: #fff9f2;
+  --panel-dark: #2d221c;
   --text: #271c15;
   --muted: #6e5b51;
   --border: rgba(39, 28, 21, 0.1);
   --shadow: 0 24px 60px rgba(102, 60, 26, 0.14);
-  --success: #1f7a5c;
-  --danger: #b04732;
+  --shadow-soft: 0 10px 30px rgba(102, 60, 26, 0.08);
 }
 
 * {
@@ -22,53 +21,15 @@ body {
   color: var(--text);
   background:
     radial-gradient(circle at top left, rgba(255, 122, 89, 0.24), transparent 32%),
-    radial-gradient(circle at 90% 15%, rgba(42, 157, 143, 0.2), transparent 22%),
-    linear-gradient(135deg, var(--bg) 0%, #f0e7d9 100%);
+    radial-gradient(circle at 90% 15%, rgba(42, 157, 143, 0.18), transparent 22%),
+    linear-gradient(135deg, #f5efe4 0%, #efe6d6 100%);
 }
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
-}
-
-.page-shell {
-  width: min(1120px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: 2rem 0 3rem;
-}
-
-.hero {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 1.5rem;
-  align-items: stretch;
-  margin-bottom: 1.5rem;
-}
-
-.hero-copy,
-.hero-card,
-.panel {
-  border: 1px solid var(--border);
-  border-radius: 28px;
-  background: var(--panel);
-  backdrop-filter: blur(16px);
-  box-shadow: var(--shadow);
-}
-
-.hero-copy {
-  padding: 2rem;
-}
-
-.eyebrow,
-.panel-kicker,
-.hero-card-label,
-.stat-label {
-  margin: 0 0 0.5rem;
-  font-size: 0.82rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
 }
 
 h1,
@@ -89,9 +50,60 @@ h2 {
   display: none !important;
 }
 
+.page-shell {
+  width: min(1160px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.5rem 0 3rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.3fr 0.9fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.hero-copy,
+.hero-card,
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  background: var(--panel);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+}
+
+.hero-copy {
+  padding: 2rem;
+}
+
+.hero-card {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.84), rgba(255, 244, 232, 0.9)),
+    linear-gradient(135deg, rgba(42, 157, 143, 0.12), rgba(255, 122, 89, 0.14));
+}
+
+.eyebrow,
+.panel-kicker,
+.hero-card-label,
+.stat-label,
+.hero-mini-label,
+.intention-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 h1 {
   max-width: 10ch;
-  font-size: clamp(3rem, 7vw, 5.5rem);
+  font-size: clamp(3.05rem, 7vw, 5.7rem);
   margin-bottom: 1rem;
 }
 
@@ -101,26 +113,30 @@ h2 {
 }
 
 .hero-text {
-  max-width: 45ch;
+  max-width: 46ch;
   color: var(--muted);
   font-size: 1.05rem;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
-.hero-card {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background:
-    linear-gradient(160deg, rgba(255, 255, 255, 0.8), rgba(255, 240, 225, 0.86)),
-    linear-gradient(135deg, rgba(42, 157, 143, 0.16), rgba(255, 122, 89, 0.14));
+.hero-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
+.hero-mini-card {
+  border-radius: 24px;
+  padding: 1rem 1.1rem;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(39, 28, 21, 0.08);
+}
+
+.hero-mini-value,
 .hero-card-date {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 700;
-  margin-bottom: 1.5rem;
 }
 
 .hero-progress-bar {
@@ -138,9 +154,64 @@ h2 {
   transition: width 180ms ease;
 }
 
-.hero-progress-text {
-  margin-top: 0.75rem;
+.hero-progress-text,
+.stat-note,
+.reflection-status,
+.habit-meta,
+.empty-state,
+.empty-state span,
+#weeklyLabel,
+.intention-text {
   color: var(--muted);
+}
+
+.streak-strip {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.strip-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.week-day {
+  border-radius: 20px;
+  padding: 0.7rem 0.35rem;
+  text-align: center;
+  background: rgba(39, 28, 21, 0.06);
+  border: 1px solid transparent;
+}
+
+.week-day.is-strong {
+  background: rgba(42, 157, 143, 0.16);
+  border-color: rgba(42, 157, 143, 0.2);
+}
+
+.week-day.is-today {
+  border-color: rgba(39, 28, 21, 0.22);
+}
+
+.week-day-name {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.week-day-rate {
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .dashboard {
@@ -157,35 +228,41 @@ h2 {
   grid-row: span 2;
 }
 
-.habit-form {
+.habit-form,
+.field,
+.momentum-panel,
+.reflection-field {
   display: grid;
   gap: 1rem;
 }
 
-.field {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.field span {
+.field span,
+.reflection-field span {
   font-size: 0.95rem;
   font-weight: 500;
 }
 
 .field input,
-.field select {
+.field select,
+.reflection-field textarea {
   width: 100%;
   border: 1px solid rgba(39, 28, 21, 0.12);
   border-radius: 16px;
   padding: 0.95rem 1rem;
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.78);
   color: var(--text);
 }
 
 .field input:focus,
-.field select:focus {
+.field select:focus,
+.reflection-field textarea:focus {
   outline: 2px solid rgba(69, 123, 157, 0.25);
   border-color: rgba(69, 123, 157, 0.42);
+}
+
+.reflection-field textarea {
+  resize: vertical;
+  min-height: 118px;
 }
 
 .color-picker {
@@ -244,10 +321,36 @@ h2 {
   transform: translateY(-1px);
 }
 
-.stats-grid {
+.stats-grid,
+.intention-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.momentum-panel {
+  gap: 1.25rem;
+}
+
+.intention-grid {
+  grid-template-columns: 0.9fr 1.1fr;
+}
+
+.intention-card {
+  min-height: 210px;
+  border-radius: 26px;
+  padding: 1.2rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(255, 247, 238, 0.92));
+  border: 1px solid rgba(39, 28, 21, 0.08);
+  box-shadow: var(--shadow-soft);
+}
+
+.intention-text {
+  font-size: 1.4rem;
+  line-height: 1.35;
+  color: var(--text);
+  max-width: 18ch;
 }
 
 .stat-card {
@@ -260,10 +363,6 @@ h2 {
 .stat-value {
   font-size: clamp(2.4rem, 4vw, 3.4rem);
   font-weight: 700;
-}
-
-.stat-note {
-  color: var(--muted);
 }
 
 .habits-panel {
@@ -283,7 +382,6 @@ h2 {
   border-radius: 24px;
   padding: 2rem;
   text-align: center;
-  color: var(--muted);
   background: rgba(255, 255, 255, 0.45);
 }
 
@@ -310,7 +408,7 @@ h2 {
 }
 
 .habit-card.is-complete {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .habit-card-main {
@@ -318,6 +416,14 @@ h2 {
   align-items: center;
   gap: 1rem;
   min-width: 0;
+}
+
+.habit-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .habit-toggle {
@@ -360,16 +466,19 @@ h2 {
   font-weight: 700;
 }
 
-.habit-category {
-  padding: 0.24rem 0.65rem;
+.habit-category,
+.habit-badge {
+  padding: 0.3rem 0.7rem;
   border-radius: 999px;
   font-size: 0.8rem;
   background: rgba(39, 28, 21, 0.08);
   color: var(--muted);
 }
 
-.habit-meta {
-  color: var(--muted);
+.habit-badge {
+  font-weight: 700;
+  color: var(--text);
+  background: rgba(242, 193, 78, 0.28);
 }
 
 @keyframes slide-up {
@@ -384,9 +493,11 @@ h2 {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .hero,
-  .dashboard {
+  .dashboard,
+  .stats-grid,
+  .intention-grid {
     grid-template-columns: 1fr;
   }
 
@@ -407,23 +518,26 @@ h2 {
     border-radius: 22px;
   }
 
-  .stats-grid {
-    grid-template-columns: 1fr;
+  .hero-mini-grid,
+  .week-strip {
+    grid-template-columns: 1fr 1fr;
   }
 
+  .habit-card,
   .habits-heading,
-  .habit-card {
-    align-items: stretch;
+  .strip-heading {
     flex-direction: column;
+    align-items: stretch;
   }
 
-  .habit-card-main {
-    width: 100%;
-  }
-
-  .delete-button,
+  .habit-actions,
   .ghost-button,
+  .delete-button,
   .primary-button {
     width: 100%;
+  }
+
+  .habit-actions {
+    justify-content: stretch;
   }
 }

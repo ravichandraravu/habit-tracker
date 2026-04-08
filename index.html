@@ -19,12 +19,24 @@
       <header class="hero">
         <div class="hero-copy">
           <p class="eyebrow">Daily Habit Tracker</p>
-          <h1>Small actions, repeated well.</h1>
-          <p class="hero-text">
+          <h1>Show up for yourself, one honest day at a time.</h1>
+          <p class="hero-text" id="heroMessage">
             Build a rhythm you can actually keep. Add habits, check them off
             each day, and watch your streaks grow.
           </p>
+
+          <div class="hero-mini-grid">
+            <article class="hero-mini-card">
+              <p class="hero-mini-label">Today's focus</p>
+              <p class="hero-mini-value" id="focusHabit">Pick one habit to begin</p>
+            </article>
+            <article class="hero-mini-card">
+              <p class="hero-mini-label">Consistency score</p>
+              <p class="hero-mini-value" id="consistencyScore">0</p>
+            </article>
+          </div>
         </div>
+
         <div class="hero-card">
           <p class="hero-card-label">Today</p>
           <p class="hero-card-date" id="todayDate"></p>
@@ -33,6 +45,14 @@
               <div class="hero-progress-fill" id="heroProgressFill"></div>
             </div>
             <p class="hero-progress-text" id="heroProgressText">0 of 0 complete</p>
+          </div>
+
+          <div class="streak-strip">
+            <div class="strip-heading">
+              <p class="hero-card-label">Last 7 days</p>
+              <span id="weeklyLabel">0 strong days</span>
+            </div>
+            <div class="week-strip" id="weekStrip" aria-label="Seven day progress"></div>
           </div>
         </div>
       </header>
@@ -102,6 +122,36 @@
           </article>
         </section>
 
+        <section class="panel momentum-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">Daily anchor</p>
+            <h2>Why today matters</h2>
+          </div>
+
+          <div class="intention-grid">
+            <article class="intention-card">
+              <p class="intention-label">Small win</p>
+              <p class="intention-text" id="smallWinText">
+                Start with the easiest habit. Momentum loves a tiny beginning.
+              </p>
+            </article>
+
+            <article class="intention-card">
+              <p class="intention-label">Reflection</p>
+              <label class="reflection-field" for="reflectionInput">
+                <span>One sentence for tonight</span>
+                <textarea
+                  id="reflectionInput"
+                  rows="4"
+                  maxlength="180"
+                  placeholder="What would make today feel like a win?"
+                ></textarea>
+              </label>
+              <p class="reflection-status" id="reflectionStatus">Saved only on this device.</p>
+            </article>
+          </div>
+        </section>
+
         <section class="panel habits-panel">
           <div class="panel-heading habits-heading">
             <div>
@@ -137,7 +187,10 @@
             <p class="habit-meta"></p>
           </div>
         </div>
-        <button class="delete-button" type="button" aria-label="Delete habit">Remove</button>
+        <div class="habit-actions">
+          <span class="habit-badge"></span>
+          <button class="delete-button" type="button" aria-label="Delete habit">Remove</button>
+        </div>
       </article>
     </template>
 

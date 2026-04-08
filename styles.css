@@ -140,6 +140,99 @@ p {
   gap: 1rem;
 }
 
+.quote-panel {
+  padding: 1.1rem;
+  display: grid;
+  gap: 1rem;
+  background:
+    linear-gradient(135deg, rgba(12, 30, 60, 0.98), rgba(20, 58, 112, 0.96)),
+    var(--panel);
+  color: white;
+}
+
+.quote-hero {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.quote-hero-copy {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.quote-panel .eyebrow,
+.quote-panel h2,
+.quote-text {
+  color: white;
+}
+
+.quote-panel .eyebrow {
+  opacity: 0.74;
+}
+
+.quote-panel h2 {
+  font-size: 1.45rem;
+  letter-spacing: -0.03em;
+}
+
+.quote-text {
+  font-size: 1.12rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.quote-button {
+  justify-self: start;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.quote-rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(170px, 1fr);
+  gap: 0.8rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+  scrollbar-width: none;
+}
+
+.quote-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.quote-category-card {
+  border: 0;
+  border-radius: 20px;
+  padding: 1rem;
+  text-align: left;
+  color: white;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.quote-category-card.is-active {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.09));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 14px 28px rgba(7, 18, 43, 0.22);
+}
+
+.quote-category-name {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.quote-category-preview {
+  display: block;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.78);
+}
+
 .panel,
 .habit-card {
   background: var(--panel);
@@ -483,6 +576,15 @@ p {
   .habit-stack,
   .empty-state {
     grid-column: span 2;
+  }
+
+  .quote-panel {
+    grid-column: span 2;
+  }
+
+  .quote-hero {
+    grid-template-columns: 1fr auto;
+    align-items: end;
   }
 
   .bottom-nav {

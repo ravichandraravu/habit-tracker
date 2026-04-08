@@ -7,6 +7,76 @@ const ICONS = {
   Home: "🏠",
   Mindset: "🪷"
 };
+const QUOTE_CATEGORIES = [
+  {
+    id: "discipline",
+    label: "Discipline",
+    quotes: [
+      "Discipline looks boring until you see what it builds.",
+      "You are the greatest project you will ever work on. Restart. Reset. Refocus. As many times as you have to.",
+      "If you knew you were 100 rejections away from your dream, think how excited you would be every time someone told you \"no\".",
+      "Hard workouts. Difficult books. Uncomfortable conversations. Taking risks. That's how you grow.",
+      "6 months of discipline and focused work can change your life forever.",
+      "The truth is, it's supposed to feel hard.",
+      "Make a plan. And work on it. Every. Single. Day.",
+      "You don't lack motivation, you lack leverage.",
+      "Actions speak a lot louder than words.",
+      "Do not fantasize being a loser."
+    ]
+  },
+  {
+    id: "money",
+    label: "Money",
+    quotes: [
+      "If achieving greatness was easy everyone would do it.",
+      "High expectations are key to everything.",
+      "Have zero tolerance for people who lack integrity.",
+      "Whatever you lack, can be overcome through sheer determination.",
+      "Out work, out perform, out succeed.",
+      "No action, no success.",
+      "Success comes from your never ending hard work.",
+      "Focus on making money, not spending it.",
+      "Persistence is more power than talent, than genius, than education.",
+      "If it is to be, it is up to me.",
+      "Bet on yourself.",
+      "Control expenses."
+    ]
+  },
+  {
+    id: "masculine-nature",
+    label: "Masculine Nature",
+    quotes: [
+      "The problem is: You think you have time, but you don't. You really don't.",
+      "Control your lust, fear, and greed. The three silent killers of men.",
+      "Be outcome-independent, and you will win.",
+      "Sometimes, you have to be heartless.",
+      "Never trust a man who turns into an entirely different person whenever he's around girls.",
+      "You might not realize it yet, but that breakup saved you.",
+      "If interest is unclear, stop chasing. Clarity saves time.",
+      "Do not stay where you are only tolerated. Move with self-respect.",
+      "People stop respecting weak boundaries. Keep your standards clear and be willing to walk away.",
+      "Your future is waiting on the version of you that finally wakes up."
+    ]
+  },
+  {
+    id: "respect",
+    label: "Respect",
+    quotes: [
+      "Confident men dont accept second-class behavior.",
+      "Dont be afraid to lose her.",
+      "Women can smell neediness and insecurity a mile away.",
+      "No matter what anyone says or does, don't respond in a butt-hurt way.",
+      "When you believe in yourself, people believe in you. Confidence is contagious.",
+      "When you are not afraid of rejection, people lose their power over you.",
+      "Your self-worth should not be dependent on anyone's opinion.",
+      "Express interest, but not neediness.",
+      "See people as they actually are, not as you wish they were.",
+      "Confidence and balls is 90% of the game.",
+      "Don't be afraid to get rejected. Be afraid of pussying out.",
+      "Confident men are relaxed and keep their composure under intense social pressure."
+    ]
+  }
+];
 
 const habitForm = document.getElementById("habitForm");
 const habitNameInput = document.getElementById("habitName");
@@ -25,9 +95,14 @@ const focusHabit = document.getElementById("focusHabit");
 const weekStrip = document.getElementById("weekStrip");
 const progressRing = document.getElementById("progressRing");
 const resetTodayButton = document.getElementById("resetTodayButton");
+const quoteRail = document.getElementById("quoteRail");
+const featuredQuote = document.getElementById("featuredQuote");
+const quoteCategoryTitle = document.getElementById("quoteCategoryTitle");
+const nextQuoteButton = document.getElementById("nextQuoteButton");
 
 let selectedColor = "#25a9e0";
 let habits = loadHabits();
+let activeQuoteCategory = QUOTE_CATEGORIES[0].id;
 
 syncDateTime();
 render();
@@ -103,6 +178,23 @@ resetTodayButton.addEventListener("click", () => {
   render();
 });
 
+quoteRail.addEventListener("click", (event) => {
+  const button = event.target.closest(".quote-category-card");
+  if (!button) {
+    return;
+  }
+
+  activeQuoteCategory = button.dataset.category;
+  renderQuotes();
+});
+
+nextQuoteButton.addEventListener("click", () => {
+  const currentIndex = QUOTE_CATEGORIES.findIndex((category) => category.id === activeQuoteCategory);
+  const nextIndex = (currentIndex + 1) % QUOTE_CATEGORIES.length;
+  activeQuoteCategory = QUOTE_CATEGORIES[nextIndex].id;
+  renderQuotes();
+});
+
 function render() {
   habitList.innerHTML = "";
   emptyState.hidden = habits.length > 0;
@@ -114,6 +206,7 @@ function render() {
 
   updateTopSummary();
   renderWeekStrip();
+  renderQuotes();
 }
 
 function createHabitCard(habit) {
@@ -195,6 +288,34 @@ function renderWeekStrip() {
       <span class="week-day-rate">${day.key === todayKey ? day.date : rate === 0 ? "•" : "✓"}</span>
     `;
     weekStrip.appendChild(item);
+  }
+}
+
+function renderQuotes() {
+  const todaySeed = Number(getTodayKey().replaceAll("-", ""));
+  const activeCategory = QUOTE_CATEGORIES.find((category) => category.id === activeQuoteCategory) ?? QUOTE_CATEGORIES[0];
+  const featuredIndex = todaySeed % activeCategory.quotes.length;
+
+  quoteCategoryTitle.textContent = activeCategory.label;
+  featuredQuote.textContent = activeCategory.quotes[featuredIndex];
+  quoteRail.innerHTML = "";
+
+  for (const category of QUOTE_CATEGORIES) {
+    const preview = category.quotes[todaySeed % category.quotes.length];
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "quote-category-card";
+    card.dataset.category = category.id;
+
+    if (category.id === activeCategory.id) {
+      card.classList.add("is-active");
+    }
+
+    card.innerHTML = `
+      <span class="quote-category-name">${category.label}</span>
+      <span class="quote-category-preview">${preview}</span>
+    `;
+    quoteRail.appendChild(card);
   }
 }
 

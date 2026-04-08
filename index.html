@@ -10,8 +10,8 @@
     />
     <meta name="theme-color" content="#2f6fcb" />
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
-    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -31,6 +31,21 @@
       </header>
 
       <main class="content">
+        <section class="panel quote-panel">
+          <div class="quote-hero">
+            <div class="quote-hero-copy">
+              <p class="eyebrow">Quote of the day</p>
+              <h2 id="quoteCategoryTitle">Discipline</h2>
+              <p class="quote-text" id="featuredQuote"></p>
+            </div>
+            <button class="ghost-button quote-button" id="nextQuoteButton" type="button">
+              Next quote
+            </button>
+          </div>
+
+          <div class="quote-rail" id="quoteRail" aria-label="Quote categories"></div>
+        </section>
+
         <section class="panel progress-panel">
           <div class="section-title">
             <span></span>

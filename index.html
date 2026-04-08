@@ -8,77 +8,83 @@
       name="description"
       content="A calm, offline-friendly habit tracker for daily routines, streaks, and momentum."
     />
-    <meta name="theme-color" content="#f5efe4" />
+    <meta name="theme-color" content="#2f6fcb" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="page-shell">
-      <header class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">Daily Habit Tracker</p>
-          <h1>Show up for yourself, one honest day at a time.</h1>
-          <p class="hero-text" id="heroMessage">
-            Build a rhythm you can actually keep. Add habits, check them off
-            each day, and watch your streaks grow.
-          </p>
-
-          <div class="hero-mini-grid">
-            <article class="hero-mini-card">
-              <p class="hero-mini-label">Today's focus</p>
-              <p class="hero-mini-value" id="focusHabit">Pick one habit to begin</p>
-            </article>
-            <article class="hero-mini-card">
-              <p class="hero-mini-label">Consistency score</p>
-              <p class="hero-mini-value" id="consistencyScore">0</p>
-            </article>
-          </div>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="topbar-row">
+          <span class="topbar-time" id="phoneTime">9:31</span>
+          <h1>My Habits</h1>
+          <button class="icon-button" type="button" aria-label="Notifications">◌</button>
         </div>
 
-        <div class="hero-card">
-          <p class="hero-card-label">Today</p>
-          <p class="hero-card-date" id="todayDate"></p>
-          <div class="hero-progress">
-            <div class="hero-progress-bar">
-              <div class="hero-progress-fill" id="heroProgressFill"></div>
-            </div>
-            <p class="hero-progress-text" id="heroProgressText">0 of 0 complete</p>
-          </div>
+        <div class="topbar-date" id="todayDate"></div>
 
-          <div class="streak-strip">
-            <div class="strip-heading">
-              <p class="hero-card-label">Last 7 days</p>
-              <span id="weeklyLabel">0 strong days</span>
-            </div>
-            <div class="week-strip" id="weekStrip" aria-label="Seven day progress"></div>
-          </div>
-        </div>
+        <section class="week-summary">
+          <div class="week-strip" id="weekStrip" aria-label="Last seven days"></div>
+        </section>
       </header>
 
-      <main class="dashboard">
-        <section class="panel panel-form">
-          <div class="panel-heading">
-            <p class="panel-kicker">Create a habit</p>
-            <h2>What do you want to repeat daily?</h2>
+      <main class="content">
+        <section class="panel progress-panel">
+          <div class="section-title">
+            <span></span>
+            <h2>Today's Progress</h2>
+            <span></span>
+          </div>
+
+          <div class="progress-ring-card">
+            <div class="progress-ring" id="progressRing">
+              <div class="progress-ring-inner">
+                <strong id="completionRate">0%</strong>
+              </div>
+            </div>
+            <p class="progress-caption" id="heroProgressText">0 / 0 habits completed</p>
+          </div>
+        </section>
+
+        <section class="panel quick-panel">
+          <div class="quick-grid">
+            <article class="quick-stat">
+              <span class="quick-label">Best streak</span>
+              <strong id="bestStreak">0</strong>
+            </article>
+            <article class="quick-stat">
+              <span class="quick-label">Consistency</span>
+              <strong id="consistencyScore">0</strong>
+            </article>
+            <article class="quick-stat focus-stat">
+              <span class="quick-label">Focus</span>
+              <strong id="focusHabit">Start small</strong>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel add-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Add habit</p>
+              <h2>Create today's systems</h2>
+            </div>
+            <button id="resetTodayButton" class="ghost-button" type="button">Reset today</button>
           </div>
 
           <form id="habitForm" class="habit-form">
-            <label class="field">
-              <span>Habit name</span>
-              <input
-                id="habitName"
-                name="habitName"
-                type="text"
-                maxlength="40"
-                placeholder="Drink 2L of water"
-                required
-              />
-            </label>
+            <input
+              id="habitName"
+              name="habitName"
+              type="text"
+              maxlength="40"
+              placeholder="Drink water"
+              required
+            />
 
-            <label class="field">
-              <span>Category</span>
+            <div class="form-row">
               <select id="habitCategory" name="habitCategory">
                 <option value="Health">Health</option>
                 <option value="Focus">Focus</option>
@@ -87,110 +93,56 @@
                 <option value="Home">Home</option>
                 <option value="Mindset">Mindset</option>
               </select>
-            </label>
 
-            <label class="field">
-              <span>Color mood</span>
               <div class="color-picker" id="colorPicker">
-                <button type="button" class="color-swatch active" data-color="#ff7a59" aria-label="Sunset"></button>
-                <button type="button" class="color-swatch" data-color="#f2c14e" aria-label="Gold"></button>
-                <button type="button" class="color-swatch" data-color="#2a9d8f" aria-label="Teal"></button>
-                <button type="button" class="color-swatch" data-color="#457b9d" aria-label="Blue"></button>
-                <button type="button" class="color-swatch" data-color="#e76f51" aria-label="Coral"></button>
+                <button type="button" class="color-swatch active" data-color="#25a9e0" aria-label="Sky"></button>
+                <button type="button" class="color-swatch" data-color="#33c759" aria-label="Green"></button>
+                <button type="button" class="color-swatch" data-color="#ff7a1a" aria-label="Orange"></button>
+                <button type="button" class="color-swatch" data-color="#8b5cf6" aria-label="Purple"></button>
+                <button type="button" class="color-swatch" data-color="#2f6fcb" aria-label="Blue"></button>
               </div>
-            </label>
+            </div>
 
             <button class="primary-button" type="submit">Add habit</button>
           </form>
         </section>
 
-        <section class="stats-grid">
-          <article class="panel stat-card">
-            <p class="stat-label">Completion</p>
-            <p class="stat-value" id="completionRate">0%</p>
-            <p class="stat-note">Today’s momentum</p>
-          </article>
-          <article class="panel stat-card">
-            <p class="stat-label">Habits</p>
-            <p class="stat-value" id="habitCount">0</p>
-            <p class="stat-note">Active routines</p>
-          </article>
-          <article class="panel stat-card">
-            <p class="stat-label">Best streak</p>
-            <p class="stat-value" id="bestStreak">0</p>
-            <p class="stat-note">Days in a row</p>
-          </article>
-        </section>
+        <section class="habit-stack" id="habitList" aria-live="polite"></section>
 
-        <section class="panel momentum-panel">
-          <div class="panel-heading">
-            <p class="panel-kicker">Daily anchor</p>
-            <h2>Why today matters</h2>
-          </div>
-
-          <div class="intention-grid">
-            <article class="intention-card">
-              <p class="intention-label">Small win</p>
-              <p class="intention-text" id="smallWinText">
-                Start with the easiest habit. Momentum loves a tiny beginning.
-              </p>
-            </article>
-
-            <article class="intention-card">
-              <p class="intention-label">Reflection</p>
-              <label class="reflection-field" for="reflectionInput">
-                <span>One sentence for tonight</span>
-                <textarea
-                  id="reflectionInput"
-                  rows="4"
-                  maxlength="180"
-                  placeholder="What would make today feel like a win?"
-                ></textarea>
-              </label>
-              <p class="reflection-status" id="reflectionStatus">Saved only on this device.</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="panel habits-panel">
-          <div class="panel-heading habits-heading">
-            <div>
-              <p class="panel-kicker">Today’s list</p>
-              <h2>Your habits</h2>
-            </div>
-            <button id="resetTodayButton" class="ghost-button" type="button">
-              Reset today
-            </button>
-          </div>
-
-          <div id="emptyState" class="empty-state">
-            <p>No habits yet.</p>
-            <span>Add your first daily habit to start building your streak.</span>
-          </div>
-
-          <div id="habitList" class="habit-list" aria-live="polite"></div>
+        <section id="emptyState" class="panel empty-state">
+          <p>No habits yet.</p>
+          <span>Add your first habit to build your daily rhythm.</span>
         </section>
       </main>
+
+      <nav class="bottom-nav" aria-label="App navigation">
+        <button class="nav-item is-active" type="button">Home</button>
+        <button class="nav-item" type="button">Stats</button>
+        <button class="nav-add" type="button">+</button>
+        <button class="nav-item" type="button">Insights</button>
+        <button class="nav-item" type="button">Profile</button>
+      </nav>
     </div>
 
     <template id="habitTemplate">
       <article class="habit-card">
-        <div class="habit-card-main">
-          <button class="habit-toggle" type="button" aria-label="Toggle habit completion">
-            <span class="habit-toggle-ring"></span>
-          </button>
-          <div class="habit-copy">
-            <div class="habit-topline">
+        <div class="habit-header">
+          <div class="habit-title-wrap">
+            <span class="habit-icon"></span>
+            <div class="habit-copy">
               <h3 class="habit-title"></h3>
-              <span class="habit-category"></span>
+              <p class="habit-meta"></p>
             </div>
-            <p class="habit-meta"></p>
+          </div>
+          <div class="habit-side">
+            <span class="habit-score"></span>
+            <button class="delete-button" type="button" aria-label="Delete habit">Remove</button>
           </div>
         </div>
-        <div class="habit-actions">
-          <span class="habit-badge"></span>
-          <button class="delete-button" type="button" aria-label="Delete habit">Remove</button>
-        </div>
+
+        <div class="habit-days"></div>
+
+        <button class="habit-toggle" type="button">Mark today done</button>
       </article>
     </template>
 

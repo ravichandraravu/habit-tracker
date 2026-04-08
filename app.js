@@ -1,13 +1,12 @@
-const STORAGE_KEY = "daily-habit-tracker-v2";
-const REFLECTION_KEY = "daily-habit-tracker-reflection-v1";
-
-const MESSAGES = [
-  "Discipline gets easier when the first step is tiny.",
-  "You do not need a perfect day. You need an honest one.",
-  "Momentum is built by showing up before you feel ready.",
-  "Protect your future self with one clean repeat today.",
-  "A calm routine beats a dramatic reset every time."
-];
+const STORAGE_KEY = "daily-habit-tracker-v3";
+const ICONS = {
+  Health: "💧",
+  Focus: "🧠",
+  Fitness: "🏋️",
+  Learning: "📖",
+  Home: "🏠",
+  Mindset: "🪷"
+};
 
 const habitForm = document.getElementById("habitForm");
 const habitNameInput = document.getElementById("habitName");
@@ -17,27 +16,22 @@ const habitList = document.getElementById("habitList");
 const habitTemplate = document.getElementById("habitTemplate");
 const emptyState = document.getElementById("emptyState");
 const todayDate = document.getElementById("todayDate");
-const heroProgressFill = document.getElementById("heroProgressFill");
-const heroProgressText = document.getElementById("heroProgressText");
+const phoneTime = document.getElementById("phoneTime");
 const completionRate = document.getElementById("completionRate");
-const habitCount = document.getElementById("habitCount");
+const heroProgressText = document.getElementById("heroProgressText");
 const bestStreak = document.getElementById("bestStreak");
-const resetTodayButton = document.getElementById("resetTodayButton");
-const heroMessage = document.getElementById("heroMessage");
-const focusHabit = document.getElementById("focusHabit");
 const consistencyScore = document.getElementById("consistencyScore");
-const weeklyLabel = document.getElementById("weeklyLabel");
+const focusHabit = document.getElementById("focusHabit");
 const weekStrip = document.getElementById("weekStrip");
-const smallWinText = document.getElementById("smallWinText");
-const reflectionInput = document.getElementById("reflectionInput");
-const reflectionStatus = document.getElementById("reflectionStatus");
+const progressRing = document.getElementById("progressRing");
+const resetTodayButton = document.getElementById("resetTodayButton");
 
-let selectedColor = "#ff7a59";
+let selectedColor = "#25a9e0";
 let habits = loadHabits();
 
-syncTodayDate();
-hydrateReflection();
+syncDateTime();
 render();
+setInterval(syncDateTime, 60000);
 
 colorPicker.addEventListener("click", (event) => {
   const swatch = event.target.closest(".color-swatch");
@@ -45,10 +39,7 @@ colorPicker.addEventListener("click", (event) => {
     return;
   }
 
-  selectedColor = swatch.dataset.color;
-  for (const item of colorPicker.querySelectorAll(".color-swatch")) {
-    item.classList.toggle("active", item === swatch);
-  }
+  setSelectedColor(swatch.dataset.color);
 });
 
 habitForm.addEventListener("submit", (event) => {
@@ -71,7 +62,7 @@ habitForm.addEventListener("submit", (event) => {
   persist();
   habitForm.reset();
   habitCategoryInput.value = "Health";
-  setSelectedColor("#ff7a59");
+  setSelectedColor("#25a9e0");
   habitNameInput.focus();
   render();
 });
@@ -108,139 +99,138 @@ resetTodayButton.addEventListener("click", () => {
     delete completions[todayKey];
     return { ...habit, completions };
   });
-
   persist();
   render();
 });
 
-reflectionInput.addEventListener("input", () => {
-  const todayKey = getTodayKey();
-  const payload = loadReflectionMap();
-  payload[todayKey] = reflectionInput.value.trim();
-  localStorage.setItem(REFLECTION_KEY, JSON.stringify(payload));
-  reflectionStatus.textContent = reflectionInput.value.trim()
-    ? "Reflection saved for today."
-    : "Saved only on this device.";
-});
-
 function render() {
-  const todayKey = getTodayKey();
   habitList.innerHTML = "";
-
   emptyState.hidden = habits.length > 0;
   habitList.hidden = habits.length === 0;
 
   for (const habit of habits) {
-    const fragment = habitTemplate.content.cloneNode(true);
-    const card = fragment.querySelector(".habit-card");
-    const toggle = fragment.querySelector(".habit-toggle");
-    const ring = fragment.querySelector(".habit-toggle-ring");
-    const title = fragment.querySelector(".habit-title");
-    const category = fragment.querySelector(".habit-category");
-    const meta = fragment.querySelector(".habit-meta");
-    const badge = fragment.querySelector(".habit-badge");
-
-    const doneToday = Boolean(habit.completions[todayKey]);
-    const streak = calculateCurrentStreak(habit);
-
-    card.dataset.id = habit.id;
-    card.classList.toggle("is-complete", doneToday);
-    card.style.borderLeft = `8px solid ${habit.color}`;
-
-    toggle.style.background = doneToday ? habit.color : "rgba(39, 28, 21, 0.08)";
-    ring.style.background = doneToday ? "#fff7f0" : "transparent";
-    ring.style.borderColor = doneToday ? "#fff7f0" : "rgba(39, 28, 21, 0.2)";
-
-    title.textContent = habit.name;
-    category.textContent = habit.category;
-    badge.textContent = streak > 0 ? `${streak} day streak` : "Fresh start";
-    meta.textContent = doneToday
-      ? "Done today. Protect the streak tomorrow."
-      : streak > 0
-        ? `You have momentum. Keep ${streak} day${streak === 1 ? "" : "s"} alive.`
-        : "Start once today. Repetition begins with a single check.";
-
-    habitList.appendChild(fragment);
+    habitList.appendChild(createHabitCard(habit));
   }
 
-  updateStats();
+  updateTopSummary();
   renderWeekStrip();
-  updateMotivation();
 }
 
-function updateStats() {
+function createHabitCard(habit) {
+  const todayKey = getTodayKey();
+  const fragment = habitTemplate.content.cloneNode(true);
+  const card = fragment.querySelector(".habit-card");
+  const icon = fragment.querySelector(".habit-icon");
+  const title = fragment.querySelector(".habit-title");
+  const meta = fragment.querySelector(".habit-meta");
+  const score = fragment.querySelector(".habit-score");
+  const days = fragment.querySelector(".habit-days");
+  const toggle = fragment.querySelector(".habit-toggle");
+
+  const streak = calculateCurrentStreak(habit);
+  const weeklyDone = getLastSevenDays()
+    .filter((day) => habit.completions[day.key]).length;
+
+  card.dataset.id = habit.id;
+  icon.textContent = ICONS[habit.category] ?? "✓";
+  icon.style.color = habit.color;
+  title.textContent = habit.name;
+  meta.textContent = `${habit.category} • ${streak > 0 ? `${streak} day streak` : "Fresh start"}`;
+  score.textContent = `${weeklyDone} / 7`;
+  toggle.textContent = habit.completions[todayKey] ? "Undo today" : "Mark today done";
+
+  for (const day of getLastSevenDays()) {
+    const box = document.createElement("div");
+    box.className = "habit-day";
+    if (habit.completions[day.key]) {
+      box.classList.add("is-done");
+      box.style.background = habit.color;
+      box.style.borderColor = habit.color;
+      box.textContent = "✓";
+    }
+    if (day.key === todayKey) {
+      box.classList.add("is-today");
+    }
+    days.appendChild(box);
+  }
+
+  return fragment;
+}
+
+function updateTopSummary() {
   const todayKey = getTodayKey();
   const total = habits.length;
   const done = habits.filter((habit) => habit.completions[todayKey]).length;
-  const rate = total === 0 ? 0 : Math.round((done / total) * 100);
-  const streaks = habits.map(calculateCurrentStreak);
-  const topStreak = streaks.length ? Math.max(...streaks) : 0;
-  const weekSummary = buildWeekSummary();
-  const strongDays = weekSummary.filter((day) => day.rate >= 70).length;
+  const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+  const topStreak = habits.length ? Math.max(...habits.map(calculateCurrentStreak)) : 0;
+  const weekRates = getLastSevenDays().map((day) => getCompletionRateForDay(day.key));
+  const average = habits.length === 0 ? 0 : Math.round(weekRates.reduce((sum, rate) => sum + rate, 0) / weekRates.length);
+  const nextHabit = habits.find((habit) => !habit.completions[todayKey])?.name ?? "All done";
 
-  heroProgressFill.style.width = `${rate}%`;
-  heroProgressText.textContent = `${done} of ${total} complete`;
-  completionRate.textContent = `${rate}%`;
-  habitCount.textContent = String(total);
+  completionRate.textContent = `${percent}%`;
+  heroProgressText.textContent = `${done} / ${total} habits completed`;
   bestStreak.textContent = String(topStreak);
-  consistencyScore.textContent = String(calculateConsistencyScore(weekSummary));
-  weeklyLabel.textContent = `${strongDays} strong day${strongDays === 1 ? "" : "s"}`;
+  consistencyScore.textContent = String(average);
+  focusHabit.textContent = nextHabit;
+  progressRing.style.setProperty("--progress", `${Math.round((percent / 100) * 360)}deg`);
 }
 
 function renderWeekStrip() {
-  const weekSummary = buildWeekSummary();
+  const todayKey = getTodayKey();
   weekStrip.innerHTML = "";
 
-  for (const day of weekSummary) {
-    const element = document.createElement("div");
-    element.className = "week-day";
-    if (day.rate >= 70) {
-      element.classList.add("is-strong");
+  for (const day of getLastSevenDays()) {
+    const rate = getCompletionRateForDay(day.key);
+    const item = document.createElement("div");
+    item.className = "week-day";
+    if (rate >= 60) {
+      item.classList.add("is-strong");
     }
-    if (day.isToday) {
-      element.classList.add("is-today");
+    if (day.key === todayKey) {
+      item.classList.add("is-today");
     }
 
-    element.innerHTML = `
+    item.innerHTML = `
       <span class="week-day-name">${day.label}</span>
-      <span class="week-day-rate">${day.total === 0 ? "-" : `${day.rate}%`}</span>
+      <span class="week-day-rate">${day.key === todayKey ? day.date : rate === 0 ? "•" : "✓"}</span>
     `;
-    weekStrip.appendChild(element);
+    weekStrip.appendChild(item);
   }
 }
 
-function updateMotivation() {
-  const todayKey = getTodayKey();
-  const total = habits.length;
-  const doneHabits = habits.filter((habit) => habit.completions[todayKey]);
-  const remaining = habits.filter((habit) => !habit.completions[todayKey]);
-  const rate = total === 0 ? 0 : Math.round((doneHabits.length / total) * 100);
-  const quoteIndex = Number(todayKey.replaceAll("-", "")) % MESSAGES.length;
+function getCompletionRateForDay(key) {
+  if (habits.length === 0) {
+    return 0;
+  }
 
-  heroMessage.textContent = total === 0
-    ? "Start with one habit that feels almost too easy. The goal is to make returning tomorrow feel natural."
-    : rate === 100
-      ? "You closed the loop today. Let that feeling become your new normal."
-      : `${MESSAGES[quoteIndex]} ${remaining.length > 0 ? "Your next checkmark matters most." : ""}`;
+  const done = habits.filter((habit) => habit.completions[key]).length;
+  return Math.round((done / habits.length) * 100);
+}
 
-  focusHabit.textContent = remaining[0]?.name ?? doneHabits[0]?.name ?? "Pick one habit to begin";
-  smallWinText.textContent = total === 0
-    ? "Add one habit you can complete in under two minutes. Easy wins create return visits."
-    : rate === 0
-      ? `Start with "${remaining[0]?.name ?? "your easiest habit"}". Make the first win so small you cannot avoid it.`
-      : rate < 100
-        ? `You're already moving. Finish with "${remaining[0]?.name ?? "one more habit"}" to give today a clean ending.`
-        : "Everything is checked off. Take 10 seconds to notice that you kept a promise to yourself.";
+function getLastSevenDays() {
+  const base = new Date();
+  const days = [];
+
+  for (let offset = 6; offset >= 0; offset -= 1) {
+    const date = new Date(base);
+    date.setDate(base.getDate() - offset);
+    days.push({
+      key: formatDateKey(date),
+      label: new Intl.DateTimeFormat(undefined, { weekday: "narrow" }).format(date),
+      date: String(date.getDate())
+    });
+  }
+
+  return days;
 }
 
 function toggleHabit(habit) {
   const todayKey = getTodayKey();
   if (habit.completions[todayKey]) {
     delete habit.completions[todayKey];
-    return;
+  } else {
+    habit.completions[todayKey] = true;
   }
-
-  habit.completions[todayKey] = true;
 }
 
 function calculateCurrentStreak(habit) {
@@ -252,64 +242,11 @@ function calculateCurrentStreak(habit) {
     if (!habit.completions[key]) {
       break;
     }
-
     streak += 1;
     cursor.setDate(cursor.getDate() - 1);
   }
 
   return streak;
-}
-
-function buildWeekSummary() {
-  const days = [];
-  const today = new Date();
-
-  for (let offset = 6; offset >= 0; offset -= 1) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - offset);
-    const key = formatDateKey(date);
-    const total = habits.length;
-    const done = habits.filter((habit) => Boolean(habit.completions[key])).length;
-    const rate = total === 0 ? 0 : Math.round((done / total) * 100);
-
-    days.push({
-      key,
-      total,
-      rate,
-      isToday: key === getTodayKey(),
-      label: new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(date)
-    });
-  }
-
-  return days;
-}
-
-function calculateConsistencyScore(weekSummary) {
-  if (weekSummary.length === 0 || habits.length === 0) {
-    return 0;
-  }
-
-  const totalRate = weekSummary.reduce((sum, day) => sum + day.rate, 0);
-  return Math.round(totalRate / weekSummary.length);
-}
-
-function hydrateReflection() {
-  const payload = loadReflectionMap();
-  const todayValue = payload[getTodayKey()] ?? "";
-  reflectionInput.value = todayValue;
-  reflectionStatus.textContent = todayValue
-    ? "Reflection saved for today."
-    : "Saved only on this device.";
-}
-
-function loadReflectionMap() {
-  try {
-    const raw = localStorage.getItem(REFLECTION_KEY);
-    const parsed = raw ? JSON.parse(raw) : {};
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
 }
 
 function loadHabits() {
@@ -337,12 +274,17 @@ function formatDateKey(date) {
   return `${year}-${month}-${day}`;
 }
 
-function syncTodayDate() {
+function syncDateTime() {
+  const now = new Date();
   todayDate.textContent = new Intl.DateTimeFormat(undefined, {
     weekday: "long",
     month: "long",
     day: "numeric"
-  }).format(new Date());
+  }).format(now);
+  phoneTime.textContent = new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(now);
 }
 
 function setSelectedColor(color) {

@@ -80,6 +80,7 @@ const QUOTE_CATEGORIES = [
 
 const habitForm = document.getElementById("habitForm");
 const habitNameInput = document.getElementById("habitName");
+const habitMinutesInput = document.getElementById("habitMinutes");
 const habitCategoryInput = document.getElementById("habitCategory");
 const colorPicker = document.getElementById("colorPicker");
 const habitList = document.getElementById("habitList");
@@ -99,6 +100,8 @@ const quoteRail = document.getElementById("quoteRail");
 const featuredQuote = document.getElementById("featuredQuote");
 const quoteCategoryTitle = document.getElementById("quoteCategoryTitle");
 const nextQuoteButton = document.getElementById("nextQuoteButton");
+const plannedMinutes = document.getElementById("plannedMinutes");
+const completedMinutes = document.getElementById("completedMinutes");
 
 let selectedColor = "#25a9e0";
 let habits = loadHabits();
@@ -121,13 +124,19 @@ habitForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
   const name = habitNameInput.value.trim();
+  const minutesValue = Number(habitMinutesInput.value);
   if (!name) {
+    return;
+  }
+
+  if (!Number.isFinite(minutesValue) || minutesValue <= 0) {
     return;
   }
 
   habits.unshift({
     id: crypto.randomUUID(),
     name,
+    minutes: Math.round(minutesValue),
     category: habitCategoryInput.value,
     color: selectedColor,
     createdAt: new Date().toISOString(),
@@ -165,6 +174,28 @@ habitList.addEventListener("click", (event) => {
     persist();
     render();
   }
+});
+
+habitList.addEventListener("change", (event) => {
+  const checkbox = event.target.closest(".habit-check");
+  if (!checkbox) {
+    return;
+  }
+
+  const card = checkbox.closest(".habit-card");
+  const habit = habits.find((item) => item.id === card?.dataset.id);
+  if (!habit) {
+    return;
+  }
+
+  if (checkbox.checked) {
+    habit.completions[getTodayKey()] = true;
+  } else {
+    delete habit.completions[getTodayKey()];
+  }
+
+  persist();
+  render();
 });
 
 resetTodayButton.addEventListener("click", () => {
@@ -219,18 +250,23 @@ function createHabitCard(habit) {
   const score = fragment.querySelector(".habit-score");
   const days = fragment.querySelector(".habit-days");
   const toggle = fragment.querySelector(".habit-toggle");
+  const checkbox = fragment.querySelector(".habit-check");
+  const minutesLabel = fragment.querySelector(".habit-minutes");
 
   const streak = calculateCurrentStreak(habit);
   const weeklyDone = getLastSevenDays()
     .filter((day) => habit.completions[day.key]).length;
+  const minutes = Number.isFinite(habit.minutes) ? habit.minutes : 0;
 
   card.dataset.id = habit.id;
   icon.textContent = ICONS[habit.category] ?? "✓";
   icon.style.color = habit.color;
   title.textContent = habit.name;
-  meta.textContent = `${habit.category} • ${streak > 0 ? `${streak} day streak` : "Fresh start"}`;
+  meta.textContent = `${habit.category} • ${minutes} min • ${streak > 0 ? `${streak} day streak` : "Fresh start"}`;
   score.textContent = `${weeklyDone} / 7`;
   toggle.textContent = habit.completions[todayKey] ? "Undo today" : "Mark today done";
+  checkbox.checked = Boolean(habit.completions[todayKey]);
+  minutesLabel.textContent = `${minutes} min`;
 
   for (const day of getLastSevenDays()) {
     const box = document.createElement("div");
@@ -255,6 +291,10 @@ function updateTopSummary() {
   const total = habits.length;
   const done = habits.filter((habit) => habit.completions[todayKey]).length;
   const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+  const planned = habits.reduce((sum, habit) => sum + (Number.isFinite(habit.minutes) ? habit.minutes : 0), 0);
+  const completed = habits
+    .filter((habit) => habit.completions[todayKey])
+    .reduce((sum, habit) => sum + (Number.isFinite(habit.minutes) ? habit.minutes : 0), 0);
   const topStreak = habits.length ? Math.max(...habits.map(calculateCurrentStreak)) : 0;
   const weekRates = getLastSevenDays().map((day) => getCompletionRateForDay(day.key));
   const average = habits.length === 0 ? 0 : Math.round(weekRates.reduce((sum, rate) => sum + rate, 0) / weekRates.length);
@@ -266,6 +306,8 @@ function updateTopSummary() {
   consistencyScore.textContent = String(average);
   focusHabit.textContent = nextHabit;
   progressRing.style.setProperty("--progress", `${Math.round((percent / 100) * 360)}deg`);
+  plannedMinutes.textContent = String(planned);
+  completedMinutes.textContent = String(completed);
 }
 
 function renderWeekStrip() {
@@ -374,7 +416,14 @@ function loadHabits() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.map((habit) => ({
+      ...habit,
+      minutes: Number.isFinite(habit.minutes) ? habit.minutes : 10
+    }));
   } catch {
     return [];
   }

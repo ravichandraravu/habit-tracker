@@ -8,7 +8,7 @@
       name="description"
       content="A calm, offline-friendly habit tracker for daily routines, streaks, and momentum."
     />
-    <meta name="theme-color" content="#2f6fcb" />
+    <meta name="theme-color" content="#081428" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
@@ -24,6 +24,23 @@
         </div>
 
         <div class="topbar-date" id="todayDate"></div>
+
+        <section class="brand-hero" aria-label="Brand hero">
+          <img
+            class="brand-hero-image"
+            src="./tiger-icon.jpg.png"
+            alt="Tiger walking forward"
+          />
+          <div class="brand-hero-overlay"></div>
+          <div class="brand-hero-copy">
+            <p class="brand-kicker">Discipline mode</p>
+            <h2>Quiet pressure. Sharp focus. Daily wins.</h2>
+            <p>
+              Build systems that make you harder to distract, easier to trust, and
+              impossible to stop.
+            </p>
+          </div>
+        </section>
 
         <section class="week-summary">
           <div class="week-strip" id="weekStrip" aria-label="Last seven days"></div>
@@ -80,6 +97,17 @@
           </div>
         </section>
 
+        <section class="panel minutes-panel">
+          <div class="minutes-stat">
+            <span class="minutes-label">Planned minutes</span>
+            <strong id="plannedMinutes">0</strong>
+          </div>
+          <div class="minutes-stat">
+            <span class="minutes-label">Completed minutes</span>
+            <strong id="completedMinutes">0</strong>
+          </div>
+        </section>
+
         <section class="panel add-panel">
           <div class="panel-head">
             <div>
@@ -100,6 +128,17 @@
             />
 
             <div class="form-row">
+              <input
+                id="habitMinutes"
+                name="habitMinutes"
+                type="number"
+                min="1"
+                max="600"
+                step="1"
+                inputmode="numeric"
+                placeholder="Minutes"
+                required
+              />
               <select id="habitCategory" name="habitCategory">
                 <option value="Health">Health</option>
                 <option value="Focus">Focus</option>
@@ -153,6 +192,14 @@
             <span class="habit-score"></span>
             <button class="delete-button" type="button" aria-label="Delete habit">Remove</button>
           </div>
+        </div>
+
+        <div class="habit-controls">
+          <label class="habit-check-row">
+            <input class="habit-check" type="checkbox" />
+            <span>Done today</span>
+          </label>
+          <span class="habit-minutes"></span>
         </div>
 
         <div class="habit-days"></div>

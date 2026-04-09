@@ -38,124 +38,166 @@
         </section>
       </header>
 
-      <main class="content">
-        <section class="panel quote-panel">
-          <div class="quote-hero">
-            <div class="quote-hero-copy">
-              <p class="eyebrow">Quote of the day</p>
-              <h2 id="quoteCategoryTitle">Discipline</h2>
-              <p class="quote-text" id="featuredQuote"></p>
-            </div>
-            <button class="ghost-button quote-button" id="nextQuoteButton" type="button">
-              Next quote
-            </button>
-          </div>
-
-          <div class="quote-rail" id="quoteRail" aria-label="Quote categories"></div>
-        </section>
-
-        <section class="panel progress-panel" hidden>
-          <div class="section-title">
-            <span></span>
-            <h2>Today's Progress</h2>
-            <span></span>
-          </div>
-
-          <div class="progress-ring-card">
-            <div class="progress-ring" id="progressRing">
-              <div class="progress-ring-inner">
-                <strong id="completionRate">0%</strong>
+      <div class="page-tabs" role="tablist">
+        <button class="page-tab is-active" role="tab" data-page="habits">Habit Tracker</button>
+        <button class="page-tab" role="tab" data-page="notes">Notes / To-Do</button>
+      </div>
+      <main class="content pager" id="pager">
+        <section class="page page-habits" role="tabpanel" data-page="habits">
+          <section class="panel quote-panel">
+            <div class="quote-hero">
+              <div class="quote-hero-copy">
+                <p class="eyebrow">Quote of the day</p>
+                <h2 id="quoteCategoryTitle">Discipline</h2>
+                <p class="quote-text" id="featuredQuote"></p>
               </div>
+              <button class="ghost-button quote-button" id="nextQuoteButton" type="button">
+                Next quote
+              </button>
             </div>
-            <p class="progress-caption" id="heroProgressText">0 / 0 habits completed</p>
-          </div>
-        </section>
 
-        <section class="panel quick-panel">
-          <div class="quick-grid">
-            <article class="quick-stat">
-              <span class="quick-label">Planned min</span>
-              <strong id="plannedMinutes">0</strong>
-            </article>
-            <article class="quick-stat">
-              <span class="quick-label">Actual min</span>
-              <strong id="completedMinutes">0</strong>
-            </article>
-            <article class="quick-stat">
-              <span class="quick-label">Within time</span>
-              <strong id="withinTimeCount">0</strong>
-            </article>
-            <article class="quick-stat">
-              <span class="quick-label">Over time</span>
-              <strong id="overTimeCount">0</strong>
-            </article>
-          </div>
-        </section>
+            <div class="quote-rail" id="quoteRail" aria-label="Quote categories"></div>
+          </section>
 
-        <section class="panel add-panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">Add habit</p>
-              <h2>Create today's systems</h2>
+          <section class="panel progress-panel" hidden>
+            <div class="section-title">
+              <span></span>
+              <h2>Today's Progress</h2>
+              <span></span>
             </div>
-            <button id="resetTodayButton" class="ghost-button" type="button">Reset today</button>
-          </div>
 
-          <form id="habitForm" class="habit-form">
-            <input
-              id="habitName"
-              name="habitName"
-              type="text"
-              maxlength="40"
-              placeholder="Drink water"
-              required
-            />
+            <div class="progress-ring-card">
+              <div class="progress-ring" id="progressRing">
+                <div class="progress-ring-inner">
+                  <strong id="completionRate">0%</strong>
+                </div>
+              </div>
+              <p class="progress-caption" id="heroProgressText">0 / 0 habits completed</p>
+            </div>
+          </section>
 
-            <div class="form-row">
+          <section class="panel quick-panel">
+            <div class="quick-grid">
+              <article class="quick-stat">
+                <span class="quick-label">Planned min</span>
+                <strong id="plannedMinutes">0</strong>
+              </article>
+              <article class="quick-stat">
+                <span class="quick-label">Actual min</span>
+                <strong id="completedMinutes">0</strong>
+              </article>
+              <article class="quick-stat">
+                <span class="quick-label">Within time</span>
+                <strong id="withinTimeCount">0</strong>
+              </article>
+              <article class="quick-stat">
+                <span class="quick-label">Over time</span>
+                <strong id="overTimeCount">0</strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel add-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Add habit</p>
+                <h2>Create today's systems</h2>
+              </div>
+              <button id="resetTodayButton" class="ghost-button" type="button">Reset today</button>
+            </div>
+
+            <form id="habitForm" class="habit-form">
               <input
-                id="habitMinutes"
-                name="habitMinutes"
-                type="number"
-                min="1"
-                max="600"
-                step="1"
-                inputmode="numeric"
-                placeholder="Minutes"
+                id="habitName"
+                name="habitName"
+                type="text"
+                maxlength="40"
+                placeholder="Drink water"
                 required
               />
-              <select id="habitCategory" name="habitCategory">
-                <option value="Health">Health</option>
-                <option value="Focus">Focus</option>
-                <option value="Fitness">Fitness</option>
-                <option value="Learning">Learning</option>
-                <option value="Home">Home</option>
-                <option value="Mindset">Mindset</option>
-              </select>
 
-              <div class="color-picker" id="colorPicker">
-                <button type="button" class="color-swatch active" data-color="#25a9e0" aria-label="Sky"></button>
-                <button type="button" class="color-swatch" data-color="#33c759" aria-label="Green"></button>
-                <button type="button" class="color-swatch" data-color="#ff7a1a" aria-label="Orange"></button>
-                <button type="button" class="color-swatch" data-color="#8b5cf6" aria-label="Purple"></button>
-                <button type="button" class="color-swatch" data-color="#2f6fcb" aria-label="Blue"></button>
+              <div class="form-row">
+                <input
+                  id="habitMinutes"
+                  name="habitMinutes"
+                  type="number"
+                  min="1"
+                  max="600"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="Minutes"
+                  required
+                />
+                <select id="habitCategory" name="habitCategory">
+                  <option value="Health">Health</option>
+                  <option value="Focus">Focus</option>
+                  <option value="Fitness">Fitness</option>
+                  <option value="Learning">Learning</option>
+                  <option value="Home">Home</option>
+                  <option value="Mindset">Mindset</option>
+                </select>
+
+                <div class="color-picker" id="colorPicker">
+                  <button type="button" class="color-swatch active" data-color="#25a9e0" aria-label="Sky"></button>
+                  <button type="button" class="color-swatch" data-color="#33c759" aria-label="Green"></button>
+                  <button type="button" class="color-swatch" data-color="#ff7a1a" aria-label="Orange"></button>
+                  <button type="button" class="color-swatch" data-color="#8b5cf6" aria-label="Purple"></button>
+                  <button type="button" class="color-swatch" data-color="#2f6fcb" aria-label="Blue"></button>
+                </div>
+              </div>
+
+              <button class="primary-button" type="submit">Add habit</button>
+            </form>
+          </section>
+
+          <section class="habit-stack" id="habitList" aria-live="polite"></section>
+
+          <section id="emptyState" class="panel empty-state">
+            <p>No habits yet.</p>
+            <span>Add your first habit to build your daily rhythm.</span>
+          </section>
+        </section>
+
+        <section class="page page-notes" role="tabpanel" data-page="notes">
+          <section class="panel add-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Notes / To-Do</p>
+                <h2>Capture what's on your mind</h2>
               </div>
             </div>
 
-            <button class="primary-button" type="submit">Add habit</button>
-          </form>
-        </section>
+            <form id="noteForm" class="habit-form note-form">
+              <input
+                id="noteTitle"
+                name="noteTitle"
+                type="text"
+                maxlength="60"
+                placeholder="Title"
+                required
+              />
+              <textarea
+                id="noteBody"
+                name="noteBody"
+                rows="3"
+                placeholder="Write your note or to-do"
+              ></textarea>
+              <button class="primary-button" type="submit">Add note</button>
+            </form>
+          </section>
 
-        <section class="habit-stack" id="habitList" aria-live="polite"></section>
+          <section class="note-stack" id="noteList" aria-live="polite"></section>
 
-        <section id="emptyState" class="panel empty-state">
-          <p>No habits yet.</p>
-          <span>Add your first habit to build your daily rhythm.</span>
+          <section id="noteEmptyState" class="panel empty-state">
+            <p>No notes yet.</p>
+            <span>Add a note or to-do to get started.</span>
+          </section>
         </section>
       </main>
 
       <nav class="bottom-nav" aria-label="App navigation">
-        <button class="nav-item is-active" type="button">Home</button>
-        <button class="nav-item" type="button">Stats</button>
+        <button class="nav-item is-active" type="button" data-page="habits">Habits</button>
+        <button class="nav-item" type="button" data-page="notes">Notes</button>
         <button class="nav-add" type="button">+</button>
         <button class="nav-item" type="button">Insights</button>
         <button class="nav-item" type="button">Profile</button>
@@ -190,6 +232,26 @@
         </div>
 
         <p class="habit-overtime" hidden></p>
+      </article>
+    </template>
+
+    <template id="noteTemplate">
+      <article class="note-card">
+        <div class="note-header">
+          <div>
+            <h3 class="note-title"></h3>
+            <p class="note-date"></p>
+          </div>
+          <label class="note-check">
+            <input class="note-complete" type="checkbox" />
+            <span>Done</span>
+          </label>
+        </div>
+        <textarea class="note-body" rows="3"></textarea>
+        <div class="note-actions">
+          <button class="ghost-button note-save" type="button">Save</button>
+          <button class="delete-button note-delete" type="button">Delete</button>
+        </div>
       </article>
     </template>
 

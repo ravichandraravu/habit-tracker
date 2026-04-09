@@ -180,6 +180,52 @@ p {
   gap: 1.15rem;
 }
 
+.page-tabs {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0 1rem 0.6rem;
+}
+
+.page-tab {
+  flex: 1;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text);
+  padding: 0.5rem 0.7rem;
+  font-weight: 600;
+}
+
+.page-tab.is-active {
+  background: white;
+  color: var(--blue);
+  box-shadow: var(--shadow-soft);
+}
+
+.pager {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(100%, 1fr));
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  gap: 0;
+}
+
+.pager::-webkit-scrollbar {
+  display: none;
+}
+
+.page {
+  scroll-snap-align: start;
+  padding-bottom: 1rem;
+}
+
+.page-habits,
+.page-notes {
+  display: grid;
+  gap: 1.15rem;
+}
+
 .panel.quote-panel {
   padding: 1.25rem;
   display: grid;
@@ -427,6 +473,17 @@ p {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
+.note-form textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 0.9rem 1rem;
+  color: var(--text-strong);
+  background: #f8fbff;
+  resize: vertical;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
 .form-row {
   display: grid;
   grid-template-columns: minmax(90px, 0.6fr) minmax(0, 1fr) auto;
@@ -496,6 +553,76 @@ p {
 .habit-stack {
   display: grid;
   gap: 1rem;
+}
+
+.note-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.note-card {
+  background: var(--panel);
+  border-radius: 22px;
+  padding: 1rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.note-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.note-date {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.note-check {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.note-body {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 0.7rem 0.8rem;
+  margin-top: 0.7rem;
+  background: #f8fbff;
+  color: var(--text);
+  resize: vertical;
+}
+
+.note-title-input {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.35rem 0.5rem;
+  width: 100%;
+  background: #f8fbff;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.note-card.is-complete {
+  opacity: 0.75;
+}
+
+.note-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+  margin-top: 0.7rem;
 }
 
 
@@ -732,28 +859,7 @@ p {
   }
 
   .content {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-  }
-
-  .progress-panel,
-  .quick-panel,
-  .habit-stack,
-  .empty-state {
-    grid-column: span 2;
-  }
-
-  .quote-panel {
-    grid-column: span 2;
-  }
-
-  .quote-hero {
-    grid-template-columns: 1fr auto;
-    align-items: end;
-  }
-
-  .quote-text {
-    font-size: 1.22rem;
+    grid-template-columns: repeat(2, minmax(100%, 1fr));
   }
 
   .bottom-nav {

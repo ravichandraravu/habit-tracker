@@ -1,5 +1,6 @@
 const STORAGE_KEY = "daily-habit-tracker-v4";
 const TIMER_KEY = "daily-habit-tracker-timer-v1";
+const NOTES_KEY = "daily-habit-tracker-notes-v1";
 const ICONS = {
   Health: "💧",
   Focus: "🧠",
@@ -131,11 +132,22 @@ const plannedMinutes = document.getElementById("plannedMinutes");
 const completedMinutes = document.getElementById("completedMinutes");
 const withinTimeCount = document.getElementById("withinTimeCount");
 const overTimeCount = document.getElementById("overTimeCount");
+const pager = document.getElementById("pager");
+const pageTabs = document.querySelectorAll(".page-tab");
+const navItems = document.querySelectorAll(".nav-item[data-page]");
+const noteForm = document.getElementById("noteForm");
+const noteTitleInput = document.getElementById("noteTitle");
+const noteBodyInput = document.getElementById("noteBody");
+const noteList = document.getElementById("noteList");
+const noteTemplate = document.getElementById("noteTemplate");
+const noteEmptyState = document.getElementById("noteEmptyState");
 
 let selectedColor = "#25a9e0";
 let habits = loadHabits();
 let activeTimer = loadTimerState();
 let activeQuoteCategory = QUOTE_CATEGORIES[0].id;
+let notes = loadNotes();
+let activePage = "habits";
 
 if (habits.length === 0) {
   habits = createDefaultHabits();
@@ -146,6 +158,7 @@ syncDateTime();
 render();
 setInterval(syncDateTime, 60000);
 setInterval(tickTimer, 1000);
+syncPager();
 
 colorPicker.addEventListener("click", (event) => {
   const swatch = event.target.closest(".color-swatch");
@@ -245,6 +258,123 @@ habitList.addEventListener("change", (event) => {
   render();
 });
 
+noteForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const title = noteTitleInput.value.trim();
+  const body = noteBodyInput.value.trim();
+
+  if (!title && !body) {
+    return;
+  }
+
+  notes.unshift({
+    id: crypto.randomUUID(),
+    title: title || "Untitled",
+    description: body,
+    completed: false,
+    createdAt: new Date().toISOString()
+  });
+
+  persistNotes();
+  noteForm.reset();
+  noteTitleInput.focus();
+  renderNotes();
+});
+
+noteList.addEventListener("click", (event) => {
+  const card = event.target.closest(".note-card");
+  if (!card) {
+    return;
+  }
+
+  const note = notes.find((item) => item.id === card.dataset.id);
+  if (!note) {
+    return;
+  }
+
+  if (event.target.closest(".note-delete")) {
+    notes = notes.filter((item) => item.id !== note.id);
+    persistNotes();
+    renderNotes();
+  }
+
+  if (event.target.closest(".note-save")) {
+    const titleInput = card.querySelector(".note-title-input");
+    const bodyInput = card.querySelector(".note-body");
+    note.title = titleInput.value.trim() || "Untitled";
+    note.description = bodyInput.value.trim();
+    persistNotes();
+    renderNotes();
+  }
+});
+
+noteList.addEventListener("change", (event) => {
+  const checkbox = event.target.closest(".note-complete");
+  if (!checkbox) {
+    return;
+  }
+
+  const card = checkbox.closest(".note-card");
+  const note = notes.find((item) => item.id === card?.dataset.id);
+  if (!note) {
+    return;
+  }
+
+  note.completed = checkbox.checked;
+  persistNotes();
+  renderNotes();
+});
+
+noteList.addEventListener("input", (event) => {
+  const textarea = event.target.closest(".note-body");
+  const titleInput = event.target.closest(".note-title-input");
+  if (!textarea && !titleInput) {
+    return;
+  }
+
+  const card = event.target.closest(".note-card");
+  if (!card) {
+    return;
+  }
+
+  const note = notes.find((item) => item.id === card.dataset.id);
+  if (!note) {
+    return;
+  }
+
+  if (titleInput) {
+    note.title = titleInput.value;
+  }
+  if (textarea) {
+    note.description = textarea.value;
+  }
+});
+
+pager.addEventListener("scroll", () => {
+  const pageWidth = pager.clientWidth;
+  const index = Math.round(pager.scrollLeft / pageWidth);
+  const page = index === 0 ? "habits" : "notes";
+  if (page !== activePage) {
+    activePage = page;
+    updatePageIndicators();
+  }
+});
+
+pageTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    activePage = tab.dataset.page;
+    scrollToPage(activePage);
+  });
+});
+
+navItems.forEach((item) => {
+  item.addEventListener("click", () => {
+    activePage = item.dataset.page;
+    scrollToPage(activePage);
+  });
+});
+
 resetTodayButton.addEventListener("click", () => {
   habits = habits.map((habit) => ({
     ...habit,
@@ -291,6 +421,7 @@ function render() {
 
   updateTopSummary();
   renderQuotes();
+  renderNotes();
 }
 
 function createHabitCard(habit) {
@@ -326,6 +457,42 @@ function createHabitCard(habit) {
   } else {
     overtimeNote.hidden = true;
     overtimeNote.textContent = "";
+  }
+
+  return fragment;
+}
+
+function renderNotes() {
+  noteList.innerHTML = "";
+  noteEmptyState.hidden = notes.length > 0;
+  noteList.hidden = notes.length === 0;
+
+  for (const note of notes) {
+    noteList.appendChild(createNoteCard(note));
+  }
+}
+
+function createNoteCard(note) {
+  const fragment = noteTemplate.content.cloneNode(true);
+  const card = fragment.querySelector(".note-card");
+  const title = fragment.querySelector(".note-title");
+  const date = fragment.querySelector(".note-date");
+  const checkbox = fragment.querySelector(".note-complete");
+  const body = fragment.querySelector(".note-body");
+
+  card.dataset.id = note.id;
+  title.innerHTML = "";
+  const input = document.createElement("input");
+  input.className = "note-title-input";
+  input.value = note.title;
+  title.appendChild(input);
+
+  date.textContent = formatNoteDate(note.createdAt);
+  checkbox.checked = note.completed;
+  body.value = note.description || "";
+
+  if (note.completed) {
+    card.classList.add("is-complete");
   }
 
   return fragment;
@@ -413,6 +580,29 @@ function loadHabits() {
 
 function persist() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(habits));
+}
+
+function persistNotes() {
+  localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+}
+
+function loadNotes() {
+  try {
+    const raw = localStorage.getItem(NOTES_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.map((note) => ({
+      id: note.id ?? crypto.randomUUID(),
+      title: note.title ?? "Untitled",
+      description: note.description ?? "",
+      completed: Boolean(note.completed),
+      createdAt: note.createdAt ?? new Date().toISOString()
+    }));
+  } catch {
+    return [];
+  }
 }
 
 function persistTimer() {
@@ -573,6 +763,33 @@ function setSelectedColor(color) {
   for (const item of colorPicker.querySelectorAll(".color-swatch")) {
     item.classList.toggle("active", item.dataset.color === color);
   }
+}
+
+function scrollToPage(page) {
+  const pageWidth = pager.clientWidth;
+  pager.scrollTo({
+    left: page === "notes" ? pageWidth : 0,
+    behavior: "smooth"
+  });
+  updatePageIndicators();
+}
+
+function updatePageIndicators() {
+  pageTabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.page === activePage));
+  navItems.forEach((item) => item.classList.toggle("is-active", item.dataset.page === activePage));
+}
+
+function syncPager() {
+  updatePageIndicators();
+  scrollToPage(activePage);
+}
+
+function formatNoteDate(dateString) {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric"
+  }).format(date);
 }
 
 function formatDuration(totalSeconds) {

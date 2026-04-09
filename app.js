@@ -1,4 +1,5 @@
-const STORAGE_KEY = "daily-habit-tracker-v3";
+const STORAGE_KEY = "daily-habit-tracker-v4";
+const TIMER_KEY = "daily-habit-tracker-timer-v1";
 const ICONS = {
   Health: "💧",
   Focus: "🧠",
@@ -7,6 +8,32 @@ const ICONS = {
   Home: "🏠",
   Mindset: "🪷"
 };
+const DEFAULT_HABITS = [
+  {
+    title: "Bathing",
+    allocatedMinutes: 10,
+    icon: "🚿",
+    motivationalText: "Start clean, start sharp."
+  },
+  {
+    title: "Exercise",
+    allocatedMinutes: 60,
+    icon: "🏋️",
+    motivationalText: "Earn the energy you want."
+  },
+  {
+    title: "Me Time",
+    allocatedMinutes: 30,
+    icon: "☕",
+    motivationalText: "Protect your peace."
+  },
+  {
+    title: "Supplements",
+    allocatedMinutes: 5,
+    icon: "💊",
+    motivationalText: "Small inputs, big outcomes."
+  }
+];
 const QUOTE_CATEGORIES = [
   {
     id: "discipline",
@@ -102,14 +129,23 @@ const quoteCategoryTitle = document.getElementById("quoteCategoryTitle");
 const nextQuoteButton = document.getElementById("nextQuoteButton");
 const plannedMinutes = document.getElementById("plannedMinutes");
 const completedMinutes = document.getElementById("completedMinutes");
+const withinTimeCount = document.getElementById("withinTimeCount");
+const overTimeCount = document.getElementById("overTimeCount");
 
 let selectedColor = "#25a9e0";
 let habits = loadHabits();
+let activeTimer = loadTimerState();
 let activeQuoteCategory = QUOTE_CATEGORIES[0].id;
+
+if (habits.length === 0) {
+  habits = createDefaultHabits();
+  persist();
+}
 
 syncDateTime();
 render();
 setInterval(syncDateTime, 60000);
+setInterval(tickTimer, 1000);
 
 colorPicker.addEventListener("click", (event) => {
   const swatch = event.target.closest(".color-swatch");
@@ -133,11 +169,17 @@ habitForm.addEventListener("submit", (event) => {
     return;
   }
 
+  const category = habitCategoryInput.value;
   habits.unshift({
     id: crypto.randomUUID(),
-    name,
-    minutes: Math.round(minutesValue),
-    category: habitCategoryInput.value,
+    title: name,
+    allocatedMinutes: Math.round(minutesValue),
+    actualMinutes: 0,
+    actualSeconds: 0,
+    status: "not started",
+    icon: ICONS[category] ?? "✓",
+    motivationalText: "Show up, then keep going.",
+    category,
     color: selectedColor,
     createdAt: new Date().toISOString(),
     completions: {}
@@ -169,43 +211,50 @@ habitList.addEventListener("click", (event) => {
     return;
   }
 
-  if (event.target.closest(".habit-toggle")) {
-    toggleHabit(habit);
-    persist();
-    render();
+  const timerButton = event.target.closest(".timer-button");
+  if (timerButton) {
+    if (activeTimer?.habitId === habit.id) {
+      stopTimer();
+    } else {
+      startTimer(habit);
+    }
   }
 });
 
 habitList.addEventListener("change", (event) => {
-  const checkbox = event.target.closest(".habit-check");
-  if (!checkbox) {
+  const allocatedInput = event.target.closest(".habit-allocated");
+  if (!allocatedInput) {
     return;
   }
 
-  const card = checkbox.closest(".habit-card");
+  const card = allocatedInput.closest(".habit-card");
   const habit = habits.find((item) => item.id === card?.dataset.id);
   if (!habit) {
     return;
   }
 
-  if (checkbox.checked) {
-    habit.completions[getTodayKey()] = true;
-  } else {
-    delete habit.completions[getTodayKey()];
+  const value = Number(allocatedInput.value);
+  if (!Number.isFinite(value) || value <= 0) {
+    allocatedInput.value = String(habit.allocatedMinutes);
+    return;
   }
 
+  habit.allocatedMinutes = Math.round(value);
+  habit.status = deriveStatus(habit, activeTimer?.habitId === habit.id);
   persist();
   render();
 });
 
 resetTodayButton.addEventListener("click", () => {
-  const todayKey = getTodayKey();
-  habits = habits.map((habit) => {
-    const completions = { ...habit.completions };
-    delete completions[todayKey];
-    return { ...habit, completions };
-  });
+  habits = habits.map((habit) => ({
+    ...habit,
+    actualMinutes: 0,
+    actualSeconds: 0,
+    status: "not started"
+  }));
+  activeTimer = null;
   persist();
+  persistTimer();
   render();
 });
 
@@ -232,105 +281,78 @@ function render() {
   habitList.hidden = habits.length === 0;
 
   for (const habit of habits) {
+    const isRunning = activeTimer?.habitId === habit.id;
+    habit.status = deriveStatus(habit, isRunning);
+  }
+
+  for (const habit of habits) {
     habitList.appendChild(createHabitCard(habit));
   }
 
   updateTopSummary();
-  renderWeekStrip();
   renderQuotes();
 }
 
 function createHabitCard(habit) {
-  const todayKey = getTodayKey();
   const fragment = habitTemplate.content.cloneNode(true);
   const card = fragment.querySelector(".habit-card");
   const icon = fragment.querySelector(".habit-icon");
   const title = fragment.querySelector(".habit-title");
-  const meta = fragment.querySelector(".habit-meta");
-  const score = fragment.querySelector(".habit-score");
-  const days = fragment.querySelector(".habit-days");
-  const toggle = fragment.querySelector(".habit-toggle");
-  const checkbox = fragment.querySelector(".habit-check");
-  const minutesLabel = fragment.querySelector(".habit-minutes");
+  const motivation = fragment.querySelector(".habit-motivation");
+  const status = fragment.querySelector(".habit-status");
+  const allocatedInput = fragment.querySelector(".habit-allocated");
+  const timerLabel = fragment.querySelector(".habit-timer");
+  const timerButton = fragment.querySelector(".timer-button");
+  const overtimeNote = fragment.querySelector(".habit-overtime");
 
-  const streak = calculateCurrentStreak(habit);
-  const weeklyDone = getLastSevenDays()
-    .filter((day) => habit.completions[day.key]).length;
-  const minutes = Number.isFinite(habit.minutes) ? habit.minutes : 0;
+  const isRunning = activeTimer?.habitId === habit.id;
+  const elapsedSeconds = isRunning ? getActiveElapsedSeconds() : getHabitElapsedSeconds(habit);
+  const currentStatus = deriveStatus({ ...habit, actualSeconds: elapsedSeconds }, isRunning);
 
   card.dataset.id = habit.id;
-  icon.textContent = ICONS[habit.category] ?? "✓";
-  icon.style.color = habit.color;
-  title.textContent = habit.name;
-  meta.textContent = `${habit.category} • ${minutes} min • ${streak > 0 ? `${streak} day streak` : "Fresh start"}`;
-  score.textContent = `${weeklyDone} / 7`;
-  toggle.textContent = habit.completions[todayKey] ? "Undo today" : "Mark today done";
-  checkbox.checked = Boolean(habit.completions[todayKey]);
-  minutesLabel.textContent = `${minutes} min`;
+  icon.textContent = habit.icon ?? "✓";
+  icon.style.color = habit.color ?? "inherit";
+  title.textContent = habit.title;
+  motivation.textContent = habit.motivationalText;
+  status.textContent = currentStatus;
+  status.dataset.status = currentStatus;
+  allocatedInput.value = String(habit.allocatedMinutes);
+  timerLabel.textContent = `Elapsed ${formatDuration(elapsedSeconds)} • Actual ${formatMinutes(elapsedSeconds)} min`;
+  timerButton.textContent = isRunning ? "Stop" : "Start";
 
-  for (const day of getLastSevenDays()) {
-    const box = document.createElement("div");
-    box.className = "habit-day";
-    if (habit.completions[day.key]) {
-      box.classList.add("is-done");
-      box.style.background = habit.color;
-      box.style.borderColor = habit.color;
-      box.textContent = "✓";
-    }
-    if (day.key === todayKey) {
-      box.classList.add("is-today");
-    }
-    days.appendChild(box);
+  if (currentStatus === "overtime") {
+    overtimeNote.hidden = false;
+    overtimeNote.textContent = `You planned ${habit.allocatedMinutes} min, wrap this up`;
+  } else {
+    overtimeNote.hidden = true;
+    overtimeNote.textContent = "";
   }
 
   return fragment;
 }
 
 function updateTopSummary() {
-  const todayKey = getTodayKey();
-  const total = habits.length;
-  const done = habits.filter((habit) => habit.completions[todayKey]).length;
-  const percent = total === 0 ? 0 : Math.round((done / total) * 100);
-  const planned = habits.reduce((sum, habit) => sum + (Number.isFinite(habit.minutes) ? habit.minutes : 0), 0);
-  const completed = habits
-    .filter((habit) => habit.completions[todayKey])
-    .reduce((sum, habit) => sum + (Number.isFinite(habit.minutes) ? habit.minutes : 0), 0);
-  const topStreak = habits.length ? Math.max(...habits.map(calculateCurrentStreak)) : 0;
-  const weekRates = getLastSevenDays().map((day) => getCompletionRateForDay(day.key));
-  const average = habits.length === 0 ? 0 : Math.round(weekRates.reduce((sum, rate) => sum + rate, 0) / weekRates.length);
-  const nextHabit = habits.find((habit) => !habit.completions[todayKey])?.name ?? "All done";
+  const planned = habits.reduce((sum, habit) => sum + habit.allocatedMinutes, 0);
+  const actual = habits.reduce((sum, habit) => sum + formatMinutes(getHabitElapsedSeconds(habit)), 0);
+  const within = habits.filter((habit) => {
+    const elapsed = getHabitElapsedSeconds(habit);
+    return elapsed > 0 && elapsed <= habit.allocatedMinutes * 60;
+  }).length;
+  const over = habits.filter((habit) => getHabitElapsedSeconds(habit) > habit.allocatedMinutes * 60).length;
 
-  completionRate.textContent = `${percent}%`;
-  heroProgressText.textContent = `${done} / ${total} habits completed`;
-  bestStreak.textContent = String(topStreak);
-  consistencyScore.textContent = String(average);
-  focusHabit.textContent = nextHabit;
-  progressRing.style.setProperty("--progress", `${Math.round((percent / 100) * 360)}deg`);
   plannedMinutes.textContent = String(planned);
-  completedMinutes.textContent = String(completed);
-}
+  completedMinutes.textContent = String(actual);
+  withinTimeCount.textContent = String(within);
+  overTimeCount.textContent = String(over);
 
-function renderWeekStrip() {
-  const todayKey = getTodayKey();
-  weekStrip.innerHTML = "";
-
-  for (const day of getLastSevenDays()) {
-    const rate = getCompletionRateForDay(day.key);
-    const item = document.createElement("div");
-    item.className = "week-day";
-    if (rate >= 60) {
-      item.classList.add("is-strong");
-    }
-    if (day.key === todayKey) {
-      item.classList.add("is-today");
-    }
-
-    item.innerHTML = `
-      <span class="week-day-name">${day.label}</span>
-      <span class="week-day-rate">${day.key === todayKey ? day.date : rate === 0 ? "•" : "✓"}</span>
-    `;
-    weekStrip.appendChild(item);
+  if (completionRate && heroProgressText && progressRing) {
+    completionRate.textContent = "0%";
+    heroProgressText.textContent = "0 / 0 habits completed";
+    progressRing.style.setProperty("--progress", "0deg");
   }
+  if (bestStreak) bestStreak.textContent = "0";
+  if (consistencyScore) consistencyScore.textContent = "0";
+  if (focusHabit) focusHabit.textContent = "Start small";
 }
 
 function renderQuotes() {
@@ -361,55 +383,18 @@ function renderQuotes() {
   }
 }
 
-function getCompletionRateForDay(key) {
-  if (habits.length === 0) {
-    return 0;
-  }
-
-  const done = habits.filter((habit) => habit.completions[key]).length;
-  return Math.round((done / habits.length) * 100);
-}
-
-function getLastSevenDays() {
-  const base = new Date();
-  const days = [];
-
-  for (let offset = 6; offset >= 0; offset -= 1) {
-    const date = new Date(base);
-    date.setDate(base.getDate() - offset);
-    days.push({
-      key: formatDateKey(date),
-      label: new Intl.DateTimeFormat(undefined, { weekday: "narrow" }).format(date),
-      date: String(date.getDate())
-    });
-  }
-
-  return days;
-}
-
-function toggleHabit(habit) {
-  const todayKey = getTodayKey();
-  if (habit.completions[todayKey]) {
-    delete habit.completions[todayKey];
-  } else {
-    habit.completions[todayKey] = true;
-  }
-}
-
-function calculateCurrentStreak(habit) {
-  let streak = 0;
-  const cursor = new Date();
-
-  while (true) {
-    const key = formatDateKey(cursor);
-    if (!habit.completions[key]) {
-      break;
-    }
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-
-  return streak;
+function createDefaultHabits() {
+  return DEFAULT_HABITS.map((habit) => ({
+    id: crypto.randomUUID(),
+    title: habit.title,
+    allocatedMinutes: habit.allocatedMinutes,
+    actualMinutes: 0,
+    actualSeconds: 0,
+    status: "not started",
+    icon: habit.icon,
+    motivationalText: habit.motivationalText,
+    createdAt: new Date().toISOString()
+  }));
 }
 
 function loadHabits() {
@@ -420,10 +405,7 @@ function loadHabits() {
       return [];
     }
 
-    return parsed.map((habit) => ({
-      ...habit,
-      minutes: Number.isFinite(habit.minutes) ? habit.minutes : 10
-    }));
+    return parsed.map((habit) => normalizeHabit(habit));
   } catch {
     return [];
   }
@@ -431,6 +413,135 @@ function loadHabits() {
 
 function persist() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(habits));
+}
+
+function persistTimer() {
+  if (activeTimer) {
+    localStorage.setItem(TIMER_KEY, JSON.stringify(activeTimer));
+  } else {
+    localStorage.removeItem(TIMER_KEY);
+  }
+}
+
+function loadTimerState() {
+  try {
+    const raw = localStorage.getItem(TIMER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.habitId || !parsed.startedAt) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeHabit(habit) {
+  const allocatedMinutes = Number.isFinite(habit.allocatedMinutes)
+    ? habit.allocatedMinutes
+    : Number.isFinite(habit.minutes)
+      ? habit.minutes
+      : 10;
+  const actualMinutes = Number.isFinite(habit.actualMinutes) ? habit.actualMinutes : 0;
+  const actualSeconds = Number.isFinite(habit.actualSeconds) ? habit.actualSeconds : actualMinutes * 60;
+  return {
+    id: habit.id ?? crypto.randomUUID(),
+    title: habit.title ?? habit.name ?? "New habit",
+    allocatedMinutes,
+    actualMinutes,
+    actualSeconds,
+    status: habit.status ?? "not started",
+    icon: habit.icon ?? (habit.category ? ICONS[habit.category] : "✓"),
+    motivationalText: habit.motivationalText ?? "Keep moving.",
+    category: habit.category,
+    color: habit.color,
+    createdAt: habit.createdAt ?? new Date().toISOString(),
+    completions: habit.completions ?? {}
+  };
+}
+
+function getHabitElapsedSeconds(habit) {
+  if (Number.isFinite(habit.actualSeconds)) {
+    return habit.actualSeconds;
+  }
+  if (Number.isFinite(habit.actualMinutes)) {
+    return habit.actualMinutes * 60;
+  }
+  return 0;
+}
+
+function setHabitElapsedSeconds(habit, seconds) {
+  habit.actualSeconds = Math.max(0, Math.floor(seconds));
+  habit.actualMinutes = formatMinutes(habit.actualSeconds);
+}
+
+function deriveStatus(habit, isRunning) {
+  const elapsedSeconds = getHabitElapsedSeconds(habit);
+  const allocatedSeconds = habit.allocatedMinutes * 60;
+
+  if (elapsedSeconds === 0) {
+    return "not started";
+  }
+  if (elapsedSeconds > allocatedSeconds) {
+    return "overtime";
+  }
+  if (isRunning) {
+    return "in progress";
+  }
+  return "completed";
+}
+
+function startTimer(habit) {
+  if (activeTimer?.habitId === habit.id) {
+    return;
+  }
+  stopTimer();
+  activeTimer = {
+    habitId: habit.id,
+    startedAt: Date.now(),
+    elapsedSeconds: getHabitElapsedSeconds(habit)
+  };
+  persistTimer();
+  render();
+}
+
+function stopTimer() {
+  if (!activeTimer) {
+    return;
+  }
+  const habit = habits.find((item) => item.id === activeTimer.habitId);
+  if (habit) {
+    setHabitElapsedSeconds(habit, getActiveElapsedSeconds());
+    habit.status = deriveStatus(habit, false);
+    persist();
+  }
+  activeTimer = null;
+  persistTimer();
+  render();
+}
+
+function getActiveElapsedSeconds() {
+  if (!activeTimer) {
+    return 0;
+  }
+  return activeTimer.elapsedSeconds + Math.floor((Date.now() - activeTimer.startedAt) / 1000);
+}
+
+function tickTimer() {
+  if (!activeTimer) {
+    return;
+  }
+  const habit = habits.find((item) => item.id === activeTimer.habitId);
+  if (!habit) {
+    activeTimer = null;
+    persistTimer();
+    return;
+  }
+  setHabitElapsedSeconds(habit, getActiveElapsedSeconds());
+  habit.status = deriveStatus(habit, true);
+  persist();
+  render();
 }
 
 function getTodayKey() {
@@ -462,4 +573,17 @@ function setSelectedColor(color) {
   for (const item of colorPicker.querySelectorAll(".color-swatch")) {
     item.classList.toggle("active", item.dataset.color === color);
   }
+}
+
+function formatDuration(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function formatMinutes(totalSeconds) {
+  if (totalSeconds === 0) {
+    return 0;
+  }
+  return Math.max(1, Math.ceil(totalSeconds / 60));
 }

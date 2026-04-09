@@ -33,13 +33,13 @@
           />
         </section>
 
-        <section class="week-summary">
+        <section class="week-summary" hidden>
           <div class="week-strip" id="weekStrip" aria-label="Last seven days"></div>
         </section>
       </header>
 
       <main class="content">
-        <section class="panel quote-panel">
+        <section class="panel quote-panel" hidden>
           <div class="quote-hero">
             <div class="quote-hero-copy">
               <p class="eyebrow">Quote of the day</p>
@@ -54,7 +54,7 @@
           <div class="quote-rail" id="quoteRail" aria-label="Quote categories"></div>
         </section>
 
-        <section class="panel progress-panel">
+        <section class="panel progress-panel" hidden>
           <div class="section-title">
             <span></span>
             <h2>Today's Progress</h2>
@@ -74,28 +74,21 @@
         <section class="panel quick-panel">
           <div class="quick-grid">
             <article class="quick-stat">
-              <span class="quick-label">Best streak</span>
-              <strong id="bestStreak">0</strong>
+              <span class="quick-label">Planned min</span>
+              <strong id="plannedMinutes">0</strong>
             </article>
             <article class="quick-stat">
-              <span class="quick-label">Consistency</span>
-              <strong id="consistencyScore">0</strong>
+              <span class="quick-label">Actual min</span>
+              <strong id="completedMinutes">0</strong>
             </article>
-            <article class="quick-stat focus-stat">
-              <span class="quick-label">Focus</span>
-              <strong id="focusHabit">Start small</strong>
+            <article class="quick-stat">
+              <span class="quick-label">Within time</span>
+              <strong id="withinTimeCount">0</strong>
             </article>
-          </div>
-        </section>
-
-        <section class="panel minutes-panel">
-          <div class="minutes-stat">
-            <span class="minutes-label">Planned minutes</span>
-            <strong id="plannedMinutes">0</strong>
-          </div>
-          <div class="minutes-stat">
-            <span class="minutes-label">Completed minutes</span>
-            <strong id="completedMinutes">0</strong>
+            <article class="quick-stat">
+              <span class="quick-label">Over time</span>
+              <strong id="overTimeCount">0</strong>
+            </article>
           </div>
         </section>
 
@@ -176,26 +169,27 @@
             <span class="habit-icon"></span>
             <div class="habit-copy">
               <h3 class="habit-title"></h3>
-              <p class="habit-meta"></p>
+              <p class="habit-motivation"></p>
             </div>
           </div>
           <div class="habit-side">
-            <span class="habit-score"></span>
+            <span class="habit-status" data-status="not started">not started</span>
             <button class="delete-button" type="button" aria-label="Delete habit">Remove</button>
           </div>
         </div>
 
-        <div class="habit-controls">
-          <label class="habit-check-row">
-            <input class="habit-check" type="checkbox" />
-            <span>Done today</span>
-          </label>
-          <span class="habit-minutes"></span>
+        <div class="habit-meta-row">
+          <span class="habit-allocated-label">Allocated</span>
+          <input class="habit-allocated" type="number" min="1" step="1" />
+          <span class="habit-allocated-suffix">min</span>
         </div>
 
-        <div class="habit-days"></div>
+        <div class="habit-timer-row">
+          <span class="habit-timer">Elapsed 00:00 • Actual 0 min</span>
+          <button class="timer-button" type="button">Start</button>
+        </div>
 
-        <button class="habit-toggle" type="button">Mark today done</button>
+        <p class="habit-overtime" hidden></p>
       </article>
     </template>
 

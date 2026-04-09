@@ -374,7 +374,7 @@ p {
 
 .quick-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
 }
 
@@ -386,10 +386,6 @@ p {
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.42),
     0 10px 18px rgba(17, 45, 88, 0.06);
-}
-
-.focus-stat {
-  background: linear-gradient(180deg, rgba(230, 246, 234, 0.95), rgba(220, 244, 226, 0.82));
 }
 
 .quick-label,
@@ -502,35 +498,6 @@ p {
   gap: 1rem;
 }
 
-.minutes-panel {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.minutes-stat {
-  background: var(--panel);
-  border-radius: 18px;
-  padding: 0.9rem 1rem;
-  box-shadow:
-    var(--shadow-soft),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  text-align: center;
-}
-
-.minutes-label {
-  display: block;
-  color: var(--muted);
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.minutes-stat strong {
-  display: block;
-  margin-top: 0.35rem;
-  font-size: 1.2rem;
-}
 
 .habit-card {
   padding: 1.05rem;
@@ -546,34 +513,87 @@ p {
   align-items: flex-start;
 }
 
-.habit-controls {
+.habit-motivation {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+.habit-status {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(19, 39, 69, 0.08);
+  color: var(--text);
+}
+
+.habit-status[data-status="in progress"] {
+  background: rgba(47, 111, 203, 0.12);
+  color: var(--blue);
+}
+
+.habit-status[data-status="completed"] {
+  background: rgba(43, 187, 79, 0.12);
+  color: #2abb4f;
+}
+
+.habit-status[data-status="overtime"] {
+  background: rgba(237, 110, 77, 0.16);
+  color: #d44c2f;
+}
+
+.habit-meta-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 90px) auto;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.8rem;
+}
+
+.habit-allocated-label,
+.habit-allocated-suffix {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.habit-allocated {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.4rem 0.5rem;
+  width: 100%;
+  text-align: center;
+  background: #f8fbff;
+  color: var(--text-strong);
+}
+
+.habit-timer-row {
+  margin-top: 0.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f5f8ff;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 0.6rem 0.8rem;
-  margin: 0.85rem 0 0.6rem;
+  gap: 0.75rem;
 }
 
-.habit-check-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+.habit-timer {
   font-size: 0.9rem;
   color: var(--text);
 }
 
-.habit-check {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--blue);
+.timer-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.6rem 1rem;
+  background: linear-gradient(180deg, #4e8eec, var(--blue));
+  color: white;
+  font-weight: 700;
 }
 
-.habit-minutes {
-  font-weight: 700;
-  color: var(--text-strong);
+.habit-overtime {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  color: #d44c2f;
 }
 
 .habit-title-wrap {
@@ -718,7 +738,6 @@ p {
 
   .progress-panel,
   .quick-panel,
-  .minutes-panel,
   .habit-stack,
   .empty-state {
     grid-column: span 2;
